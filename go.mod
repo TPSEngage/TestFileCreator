@@ -1,6 +1,6 @@
 module testFileCreatorGo
 
-go 1.22.2
+go 1.23
 
 require github.com/u2takey/ffmpeg-go v0.5.0
 
