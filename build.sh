@@ -4,10 +4,12 @@
 OUTPUT_DIR="dist"
 mkdir -p $OUTPUT_DIR
 
+# Disable CGO for cross-compilation
+export CGO_ENABLED=0
+
 # List of platforms to build for
 PLATFORMS=(
     "windows/amd64"
-    "windows/arm64"
     "darwin/amd64"
     "darwin/arm64"
     "linux/amd64"
@@ -26,6 +28,7 @@ for PLATFORM in "${PLATFORMS[@]}"; do
 
     echo "Building for $OS/$ARCH..."
 
+    # Set environment variables for cross-compilation
     env GOOS=$OS GOARCH=$ARCH go build -o $OUTPUT_DIR/$OS-$ARCH/$OUTPUT_NAME
 
     if [ $? -ne 0 ]; then
