@@ -16,7 +16,7 @@ jobs:
       - uses: FedericoCarboni/setup-ffmpeg@v3
         id: setup-ffmpeg
         with:
-          ffmpeg-version: release
+          ffmpeg-version: 4.4.2
           architecture: 'x64'
       - name: Set up Go
         uses: actions/setup-go@v4
