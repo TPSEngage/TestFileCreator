@@ -9,52 +9,76 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        go-version: [1.23]
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        arch: [amd64, arm64]
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            arch: amd64
+          - os: ubuntu-latest
+            goos: linux
+            arch: arm64
+          - os: windows-latest
+            goos: windows
+            arch: amd64
+          - os: macos-latest
+            goos: darwin
+            arch: amd64
+          - os: macos-latest
+            goos: darwin
+            arch: arm64
     steps:
       - uses: actions/checkout@v3
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: '1.23'
 
       - name: Install Dependencies
         run: go mod download
 
+      - name: Run Tests
+        run: go test ./...
+
       - name: Build
         env:
-          GOOS: ${{ matrix.os == 'ubuntu-latest' && 'linux' || (matrix.os == 'windows-latest' && 'windows' || 'darwin') }}
+          GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
+          GOEXE: ${{ matrix.goos == 'windows' && '.exe' || '' }}
         run: |
-          mkdir -p dist/${{ env.GOOS }}-${{ env.GOARCH }}
-          go build -o dist/${{ env.GOOS }}-${{ env.GOARCH }}/test_media_generator${{ env.GOOS == 'windows' && '.exe' || '' }}
+          echo "Building for $GOOS/$GOARCH..."
+          mkdir -p dist/${GOOS}-${GOARCH}
+          GOOS=$GOOS GOARCH=$GOARCH go build -o dist/${GOOS}-${GOARCH}/test_media_generator$GOEXE
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: test_media_generator-${{ env.GOOS }}-${{ env.GOARCH }}
-          path: dist/${{ env.GOOS }}-${{ env.GOARCH }}
+          name: test_media_generator-${{ matrix.goos }}-${{ matrix.arch }}
+          path: dist/${{ matrix.goos }}-${{ matrix.arch }}
+
+      - name: Get Current Time
+        id: get_time
+        shell: bash
+        run: echo "time=$(date -u +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: v${{ github.run_number }}
-          release_name: Release v${{ github.run_number }}
+          tag: v${{ steps.get_time.outputs.time }}
+          name: Release v${{ steps.get_time.outputs.time }}
+          commit: ${{ github.sha }}
           draft: false
           prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Release Asset
+      - name: Upload Release Assets
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/${{ env.GOOS }}-${{ env.GOARCH }}/test_media_generator${{ env.GOOS == 'windows' && '.exe' || '' }}
-          asset_name: test_media_generator_${{ env.GOOS }}_${{ env.GOARCH }}${{ env.GOOS == 'windows' && '.exe' || '' }}
+          asset_path: dist/${{ matrix.goos }}-${{ matrix.arch }}/test_media_generator${{ matrix.goos == 'windows' && '.exe' || '' }}
+          asset_name: test_media_generator_${{ matrix.goos }}_${{ matrix.arch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
           asset_content_type: application/octet-stream
