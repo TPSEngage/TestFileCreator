@@ -6,13 +6,18 @@ on:
       - main
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
     outputs:
       release_tag: ${{ steps.set_release_tag.outputs.release_tag }}
     steps:
       - uses: actions/checkout@v3
-
+      - uses: FedericoCarboni/setup-ffmpeg@v3
+        id: setup-ffmpeg
+        with:
+          ffmpeg-version: release
+          architecture: 'x64'
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
