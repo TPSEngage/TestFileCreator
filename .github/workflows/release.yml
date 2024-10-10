@@ -6,8 +6,32 @@ on:
       - main
 
 jobs:
-  build-and-release:
+  test:
     runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.set_release_tag.outputs.release_tag }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
+
+      - name: Install Dependencies
+        run: go mod download
+
+      - name: Run Tests
+        run: go test ./...
+
+      - name: Get Release Tag
+        id: set_release_tag
+        run: |
+          TAG="v$(date -u +'%Y%m%d%H%M%S')"
+          echo "release_tag=${TAG}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: test
     strategy:
       fail-fast: false
       matrix:
@@ -27,6 +51,7 @@ jobs:
           - os: macos-latest
             goos: darwin
             arch: arm64
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
 
@@ -37,9 +62,6 @@ jobs:
 
       - name: Install Dependencies
         run: go mod download
-
-      - name: Run Tests
-        run: go test ./...
 
       - name: Build
         env:
@@ -55,19 +77,23 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: test_media_generator-${{ matrix.goos }}-${{ matrix.arch }}
-          path: dist/${{ matrix.goos }}-${{ matrix.arch }}
+          path: dist/${GOOS}-${GOARCH}
 
-      - name: Get Current Time
-        id: get_time
-        shell: bash
-        run: echo "time=$(date -u +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+  release:
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: ./dist
 
       - name: Create Release
         id: create_release
         uses: ncipollo/release-action@v1
         with:
-          tag: v${{ steps.get_time.outputs.time }}
-          name: Release v${{ steps.get_time.outputs.time }}
+          tag: ${{ needs.test.outputs.release_tag }}
+          name: Release ${{ needs.test.outputs.release_tag }}
           commit: ${{ github.sha }}
           draft: false
           prerelease: false
@@ -75,10 +101,9 @@ jobs:
 
       - name: Upload Release Assets
         uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/${{ matrix.goos }}-${{ matrix.arch }}/test_media_generator${{ matrix.goos == 'windows' && '.exe' || '' }}
-          asset_name: test_media_generator_${{ matrix.goos }}_${{ matrix.arch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
+          asset_path: ./dist/**/test_media_generator*
+          asset_name: ${{ basename }}
           asset_content_type: application/octet-stream
+          token: ${{ secrets.GITHUB_TOKEN }}

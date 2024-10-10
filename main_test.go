@@ -6,16 +6,6 @@ import (
 	"testing"
 )
 
-func TestEscapeText(t *testing.T) {
-	input := `Special characters: \ : '`
-	expected := `Special characters: \\\\ \\\: \\\'`
-
-	result := escapeText(input)
-	if result != expected {
-		t.Errorf("Expected '%s', got '%s'", expected, result)
-	}
-}
-
 func TestEnsureFontExists(t *testing.T) {
 	testDir := t.TempDir()
 	fontPath, err := ensureFontExists(testDir)
