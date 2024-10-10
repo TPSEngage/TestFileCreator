@@ -38,6 +38,9 @@ jobs:
           - os: ubuntu-latest
             goos: linux
             arch: amd64
+          - os: ubuntu-latest
+            goos: linux
+            arch: arm64
           - os: windows-latest
             goos: windows
             arch: amd64
@@ -103,8 +106,7 @@ jobs:
             const fs = require('fs');
             const path = require('path');
 
-            const release_id = steps.create_release.outputs.release_id;
-            const upload_url = steps.create_release.outputs.upload_url;
+            const release_id = steps.create_release.outputs.id;
             const distDir = './dist';
 
             async function uploadAsset(filePath) {
@@ -146,5 +148,5 @@ jobs:
             for (const file of files) {
               await uploadAsset(file);
             }
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
