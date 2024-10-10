@@ -1,10 +1,5 @@
 "Format","Resolution","Content Type","Duration"
-"Format 1","1920x1080","video",10
+"Format 1","1080x1920","video",10
 "Format 2","1024x768","video",10
-"Format 3","1080x1920","video",10
-"Format 4","1920x1080","video",15
-"Format 5","1080x1920","video",15
-"Format 6","1080x1920","video",6
-"Format 7","1400x400","static",8
-"Format 8","1400x400","static",10
-"Format 9","1080x1440","video",15
+"Format 3","1080x1920","video",6
+"Format 4","1080x1920","video",15

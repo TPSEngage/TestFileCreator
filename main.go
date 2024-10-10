@@ -75,9 +75,9 @@ func createTestMedia(row map[string]string, fontPath string, outputDir string) e
 
 	var displayText string
 	if isVideo {
-		displayText = fmt.Sprintf("%s\\nVideo\\nDuration: %ss", resolution, duration)
+		displayText = fmt.Sprintf("%s - Video - Duration: %ss", resolution, duration)
 	} else {
-		displayText = fmt.Sprintf("%s\\nStatic\\nDuration: %ss", resolution, duration)
+		displayText = fmt.Sprintf("%s - Static - Duration: %ss", resolution, duration)
 	}
 
 	// Escape special characters in the display text

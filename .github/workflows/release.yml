@@ -1,0 +1,60 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.17, 1.18, 1.19]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Install Dependencies
+        run: go mod download
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.os == 'ubuntu-latest' && 'linux' || (matrix.os == 'windows-latest' && 'windows' || 'darwin') }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          mkdir -p dist/${{ env.GOOS }}-${{ env.GOARCH }}
+          go build -o dist/${{ env.GOOS }}-${{ env.GOARCH }}/test_media_generator${{ env.GOOS == 'windows' && '.exe' || '' }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: test_media_generator-${{ env.GOOS }}-${{ env.GOARCH }}
+          path: dist/${{ env.GOOS }}-${{ env.GOARCH }}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/${{ env.GOOS }}-${{ env.GOARCH }}/test_media_generator${{ env.GOOS == 'windows' && '.exe' || '' }}
+          asset_name: test_media_generator_${{ env.GOOS }}_${{ env.GOARCH }}${{ env.GOOS == 'windows' && '.exe' || '' }}
+          asset_content_type: application/octet-stream
