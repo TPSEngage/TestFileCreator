@@ -80,24 +80,34 @@ jobs:
           name: binaries
           path: dist/*.zip
 
+      - name: Generate Release Tag
+        id: generate_tag
+        shell: bash
+        run: |
+          TAG="v$(date -u +'%Y%m%d%H%M%S')"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
       - name: Create Release
         id: create_release
         uses: ncipollo/release-action@v1
         with:
-          tag: v$(date -u +'%Y%m%d%H%M%S')
-          name: Release v$(date -u +'%Y%m%d%H%M%S')
+          tag: ${{ steps.generate_tag.outputs.tag }}
+          name: Release ${{ steps.generate_tag.outputs.tag }}
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Release Assets
         uses: actions/github-script@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPLOAD_URL: ${{ steps.create_release.outputs.upload_url }}
         with:
           script: |
             const fs = require('fs');
             const path = require('path');
 
-            const uploadUrl = '${{ steps.create_release.outputs.upload_url }}';
+            const uploadUrl = process.env.UPLOAD_URL;
 
             const files = fs.readdirSync('dist').filter(file => file.endsWith('.zip'));
             console.log(`Found ${files.length} files to upload.`);
@@ -119,5 +129,3 @@ jobs:
                 data: fileStream,
               });
             }
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
