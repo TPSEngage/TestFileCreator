@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: FedericoCarboni/setup-ffmpeg@v3
-        id: setup-ffmpeg
-        with:
-          ffmpeg-version: 4.4.1
-          architecture: 'x64'
+#      - uses: FedericoCarboni/setup-ffmpeg@v3
+#        id: setup-ffmpeg
+#        with:
+#          ffmpeg-version: 4.4.1
+#          architecture: 'x64'
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
