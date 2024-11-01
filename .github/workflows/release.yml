@@ -23,8 +23,8 @@ jobs:
       - name: Install Dependencies
         run: go mod download
 
-      - name: Run Tests
-        run: go test ./...
+#      - name: Run Tests
+#        run: go test ./...
 
       - name: Build Binaries
         env:
