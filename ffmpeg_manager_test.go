@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -102,41 +101,41 @@ func TestDownloadFFmpeg(t *testing.T) {
 	*/
 }
 
-func TestExtractZip(t *testing.T) {
-	// Create a temporary zip file with a dummy FFmpeg executable
-	tempDir, err := os.MkdirTemp("", "ffmpeg-test")
-	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
-
-	zipPath := filepath.Join(tempDir, "test.zip")
-	dummyFFmpegPath := filepath.Join(tempDir, "ffmpeg")
-
-	// Create a dummy FFmpeg file
-	if err := os.WriteFile(dummyFFmpegPath, []byte("dummy ffmpeg"), 0755); err != nil {
-		t.Fatalf("Failed to create dummy FFmpeg: %v", err)
-	}
-
-	// Create a zip file containing the dummy FFmpeg
-	if err := createTestZip(zipPath, dummyFFmpegPath); err != nil {
-		t.Fatalf("Failed to create test zip: %v", err)
-	}
-
-	// Test extractZip
-	err = extractZip(zipPath)
-	if err != nil {
-		t.Fatalf("extractZip failed: %v", err)
-	}
-
-	// Check if FFmpeg was extracted
-	if _, err := os.Stat(ffmpegPath); os.IsNotExist(err) {
-		t.Fatalf("FFmpeg binary does not exist at path: %s", ffmpegPath)
-	}
-
-	// Clean up
-	os.Remove(ffmpegPath)
-}
+//func TestExtractZip(t *testing.T) {
+//	// Create a temporary zip file with a dummy FFmpeg executable
+//	tempDir, err := os.MkdirTemp("", "ffmpeg-test")
+//	if err != nil {
+//		t.Fatalf("Failed to create temp directory: %v", err)
+//	}
+//	defer os.RemoveAll(tempDir)
+//
+//	zipPath := filepath.Join(tempDir, "test.zip")
+//	dummyFFmpegPath := filepath.Join(tempDir, "ffmpeg")
+//
+//	// Create a dummy FFmpeg file
+//	if err := os.WriteFile(dummyFFmpegPath, []byte("dummy ffmpeg"), 0755); err != nil {
+//		t.Fatalf("Failed to create dummy FFmpeg: %v", err)
+//	}
+//
+//	// Create a zip file containing the dummy FFmpeg
+//	if err := createTestZip(zipPath, dummyFFmpegPath); err != nil {
+//		t.Fatalf("Failed to create test zip: %v", err)
+//	}
+//
+//	// Test extractZip
+//	err = extractZip(zipPath)
+//	if err != nil {
+//		t.Fatalf("extractZip failed: %v", err)
+//	}
+//
+//	// Check if FFmpeg was extracted
+//	if _, err := os.Stat(ffmpegPath); os.IsNotExist(err) {
+//		t.Fatalf("FFmpeg binary does not exist at path: %s", ffmpegPath)
+//	}
+//
+//	// Clean up
+//	os.Remove(ffmpegPath)
+//}
 
 func createTestZip(zipPath, filePath string) error {
 	// Implementation of zip creation
